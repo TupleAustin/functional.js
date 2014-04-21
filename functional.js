@@ -6,14 +6,9 @@
     return x;
   }).bind(_, undefined);
 
-  _.toArray = function(collection, n, m) {
-    return [].slice.call(collection, n || 0, m || collection.length);
-  };
-
   _.curried = function (cb) {
     return function(x) {
-      return cb.length > 1 ? _.curried(cb.bind(this, x)) :
-        cb.apply(this, _.toArray(arguments));
+      return cb.length > 1 ? _.curried(cb.bind(this, x)) : cb.call(this, x);
     };
   };
 
@@ -26,16 +21,15 @@
   };
 
   _.ternary = function(cond, yes, no) {
-    return function() {
-      var args = _.toArray(arguments);
+    return _.splat(function(args) {
       return (cond.apply(this, args) ? yes : no || _.noop).apply(this, args);
-    };
+    });
   };
 
   _.wrapper = _.curried(function(extra, cb) {
-    return function() {
-      return extra.call(this, cb.apply(this, _.toArray(arguments)));
-    };
+    return _.splat(function(args) {
+      return extra.call(this, cb.apply(this, args));
+    });
   });
 
   _.bang = function(x) {
@@ -53,7 +47,7 @@
 
   _.splat = function(cb) {
     return function() {
-      var use = _.toArray(arguments),
+      var use = [].slice.call(arguments),
         split = cb.length-1,
         args = use.slice(0, split);
         args.push(use.slice(split));
@@ -165,15 +159,14 @@
   _.flatten = Function.prototype.apply.bind([].concat, []);
 
   _.crush = function(collection) {
-    return _.flatten(_.toArray(collection).map(_.ternary(_.isAn('Array'), _.crush, _.id)));
+    return _.flatten(collection.map(_.ternary(_.isAn('Array'), _.crush, _.id)));
   };
 
   _.memoize = function(cb, hash, max) {
     var bucket = {}, trace = [];
     max = max || Infinity;
-    return function() {
-      var args = _.toArray(arguments),
-        signature = (hash || _.id).apply(null, args);
+    return _.splat(function(args) {
+      var signature = (hash || _.id).apply(null, args);
       if (memo = bucket[signature])
         return memo;
       else {
@@ -182,7 +175,7 @@
           delete bucket[trace.shift()];
         return bucket[signature] = cb.apply(null, args);
       }
-    };
+    });
   };
 
   _.noConflict = function(newNamespace) {
