@@ -1,4 +1,6 @@
 functional.js
 =============
 
-Toolkit for functional programming in JS
+Toolkit for functional programming in JS.
+
+Docs to come!
