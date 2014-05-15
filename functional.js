@@ -99,45 +99,34 @@
   // Allows you to define the X in X+Y, and store as addition function.
   _.add = _._(plus);
 
+  // Save space with meta-layer generations!
+  function fn(operator){
+    return eval('_._(function(x,y){return y' + operator + 'x;});');
+  }
+
   // Allows you to define the Y in X/Y, and store as division function.
-  _.div = _._(function(x, y) {
-    return y / x;
-  });
+  _.div = fn('/');
 
   // Allows you to define the Y in X-Y, and store as subtraction function.
-  _.sub = _._(function(x, y) {
-    return y - x;
-  });
+  _.sub = fn('-');
 
   // Allows you to define the Y in X%Y, and store as modulo function.
-  _.mod = _._(function(x, y) {
-    return y % x;
-  });
+  _.mod = fn('%');
 
   // Generates an "is greater than or equal to" check for static value
-  _.gte = _._(function(x, y) {
-    return y >= x;
-  });
+  _.gte = fn('>=');
 
   // Generates an "is greater than" check for static value
-  _.gt = _._(function(x, y) {
-    return y > x;
-  });
+  _.gt = fn('>');
 
   // Generates an "is less than or equal to" check for static value
-  _.lte = _._(function(x, y) {
-    return y <= x;
-  });
+  _.lte = fn('<=');
 
   // Generates an "is less than" check for static value
-  _.lt = _._(function(x, y) {
-    return y < x;
-  });
+  _.lt = fn('<');
 
   // Generates a === check for static value
-  _.is = _._(function(x, y) {
-    return y === x;
-  });
+  _.is = fn('===');
 
   // Remove alias from namespace since we're not heavily using  _.curried now.
   delete _._;
@@ -159,7 +148,7 @@
   _.functional = _.lambda = function(method) {
     return _.splat(function (args){
       return function (object){
-        return (typeof method === 'string' ? object[method] : method)
+        return (typeof method == 'string' ? object[method] : method)
           .apply(object, args);
       };
     });
@@ -182,8 +171,7 @@
   // First bind the method of search,
   //   then provide collection to search
   _.find = _.curried(function(cb, array) {
-    var ii = 0, len = array.length;
-    for (; ii < len; ii++)
+    for (var ii = 0; ii < array.length; ii++)
       if (cb.call(this, array[ii]))
         return array[ii];
   });
